@@ -3,61 +3,61 @@ Khóa học: AIInAction - VinUni (Day 21 - CI/CD cho AI Systems)
 Học viên: Đậu Quốc Duy
 Mã học viên: 2A202601445
 GitHub Repository: https://github.com/duy24ithust/Track2_Day21_2A202601445_DauQuocDuy
-Cloud Provider: AWS (S3: mlops-wine-duy24ithust-2026, EC2 VM: 47.129.132.169)
+Cloud Provider: AWS (S3 Bucket: mlops-wine-duy24ithust-2026, EC2 VM: 47.129.132.169)
 
 ================================================================================
-1. KẾT QUẢ THỰC NGHIỆM VÀ LỰA CHỌN BỘ SIÊU THAM SỐ (BƯỚC 1)
+1. LỰA CHỌN BỘ SIÊU THAM SỐ DỰA TRÊN THỰC NGHIỆM MLFLOW (BƯỚC 1)
 ================================================================================
-Trong Bước 1, mô hình RandomForestClassifier được huấn luyện trên tập dữ liệu Wine Quality (2998 mẫu) với 4 bộ siêu tham số khác nhau và được theo dõi bằng MLflow:
+Trên tập dữ liệu Wine Quality gốc (2.998 mẫu huấn luyện, 500 mẫu đánh giá), mô hình RandomForestClassifier được thực nghiệm qua 4 bộ siêu tham số và ghi nhận trên MLflow UI:
 - Lần 1: n_estimators = 100, max_depth = 5,  min_samples_split = 2  ==> Accuracy = 0.5640 | F1 = 0.5534
 - Lần 2: n_estimators = 150, max_depth = 10, min_samples_split = 5  ==> Accuracy = 0.6440 | F1 = 0.6408
 - Lần 3: n_estimators = 300, max_depth = 20, min_samples_split = 2  ==> Accuracy = 0.6740 | F1 = 0.6729
 - Lần 4: n_estimators = 500, max_depth = 30, min_samples_split = 2  ==> Accuracy = 0.6800 | F1 = 0.6788
 
-* Bộ siêu tham số được chọn: n_estimators = 500, max_depth = 30, min_samples_split = 2.
-* Lý do lựa chọn: Bộ tham số này đạt độ chính xác (Accuracy: 68.0%) và điểm F1 có trọng số (F1-score: 67.88%) cao nhất trên tập đánh giá (eval.csv). Độ sâu cây (max_depth = 30) cùng số lượng cây lớn (500 cây) giúp mô hình học được các tương tác phi tuyến phức tạp giữa 12 đặc trưng hóa học của rượu vang mà không làm suy giảm tính tổng quát hóa.
+* Bộ siêu tham số tối ưu được chọn: n_estimators = 500, max_depth = 30, min_samples_split = 2.
+* Lý do: Đạt độ chính xác cao nhất (68.0%) và F1-score có trọng số cao nhất (67.88%). Số lượng cây lớn (500) kết hợp với độ sâu hợp lý (30) giúp mô hình nắm bắt tối đa mối quan hệ phi tuyến giữa các đặc trưng hóa lý của rượu vang mà vẫn kiểm soát tốt hiện tượng overfitting.
 
 ================================================================================
-2. SO SÁNH HIỆU NĂNG GIỮA BƯỚC 2 VÀ BƯỚC 3 (CONTINUOUS TRAINING)
+2. SO SÁNH HIỆU NĂNG GIỮA LẦN CHẠY 2.998 MẪU VÀ 5.996 MẪU (BƯỚC 2 VS BƯỚC 3)
 ================================================================================
-Dưới đây là bảng so sánh hiệu năng của mô hình trước và sau khi bổ sung thêm 2998 mẫu dữ liệu mới (train_phase2):
+Dưới đây là kết quả đối sánh hiệu năng trước và sau khi bổ sung 2.998 mẫu mới từ train_phase2:
 
 +-----------------------+-----------------------+-----------------------+
-| Chỉ số đánh giá       | Bước 2 (2998 mẫu)     | Bước 3 (5996 mẫu)     |
+| Tiêu chí so sánh      | Lần 1: 2.998 mẫu      | Lần 2: 5.996 mẫu      |
 +-----------------------+-----------------------+-----------------------+
-| Accuracy (Độ chính xác)| 0.6800 (68.00%)       | 0.7500 (75.00%)       |
+| Accuracy              | 0.6800 (68.00%)       | 0.7500 (75.00%)       |
 | F1-score (Weighted)   | 0.6788 (67.88%)       | 0.7491 (74.91%)       |
-| Trạng thái CI/CD      | 4 Jobs Passed (Xanh)  | 4 Jobs Passed (Xanh)  |
-| Serving Endpoint      | POST /predict: OK     | POST /predict: OK     |
+| Kích hoạt Pipeline    | Push Code / Cấu hình  | Push file DVC data    |
+| GitHub Actions Jobs   | 4/4 Jobs Passed (Xanh)| 4/4 Jobs Passed (Xanh)|
+| Serving API           | POST /predict: OK     | POST /predict: OK     |
 +-----------------------+-----------------------+-----------------------+
 
-* Nhận xét: Khi kích thước tập dữ liệu huấn luyện tăng gấp đôi (từ 2998 lên 5996 mẫu), độ chính xác của mô hình tăng đáng kể từ 68.0% lên 75.0% (+7.0%) và F1-score tăng từ 0.6788 lên 0.7491 (+7.03%). Điều này chứng minh quy trình Continuous Training tự động kích hoạt bởi commit dữ liệu DVC đã cải thiện rõ rệt hiệu năng của hệ thống.
+* Đánh giá: Khi tập dữ liệu huấn luyện tăng gấp đôi (lên 5.996 mẫu), Accuracy tăng mạnh từ 68.0% lên 75.0% (+7.0%) và F1-score tăng từ 0.6788 lên 0.7491 (+7.03%). Kết quả này khẳng định hệ thống Continuous Training hoạt động chính xác: tự động phát hiện phiên bản dữ liệu DVC mới, huấn luyện lại, vượt qua Eval Gate và triển khai lên EC2 VM.
 
 ================================================================================
 3. KHÓ KHĂN GẶP PHẢI VÀ GIẢI PHÁP KHẮC PHỤC
 ================================================================================
-1. Quyền truy cập Cloud S3 (IAM Permission):
-   - Khó khăn: Tài khoản IAM User ban đầu bị thiếu quyền s3:CreateBucket và s3:ListAllMyBuckets dẫn đến lệnh tạo bucket và liệt kê bucket qua AWS CLI bị AccessDenied.
-   - Giải pháp: Gắn trực tiếp chính sách AmazonS3FullAccess cho user trên AWS IAM Console, sau đó khởi tạo thành công S3 Bucket "mlops-wine-duy24ithust-2026" cho DVC remote storage.
+1. Phân quyền IAM S3 trên AWS:
+   - Khó khăn: IAM User ban đầu thiếu quyền s3:CreateBucket và s3:ListAllMyBuckets khiến CLI báo AccessDenied khi khởi tạo remote storage.
+   - Giải pháp: Gắn policy AmazonS3FullAccess trực tiếp cho IAM User, sau đó tạo thành công bucket "mlops-wine-duy24ithust-2026".
 
-2. Cấu hình GitHub Actions trên Forked Repository:
-   - Khó khăn: GitHub tự động vô hiệu hóa tính năng Actions đối với các repository được fork về tài khoản cá nhân để tránh chạy workflow không mong muốn.
-   - Giải pháp: Truy cập tab Actions và chọn "I understand my workflows, go ahead and enable them", đồng thời thêm đủ 5 Secrets (CLOUD_CREDENTIALS, CLOUD_BUCKET, VM_HOST, VM_USER, VM_SSH_KEY).
+2. Kích hoạt GitHub Actions trên Forked Repository:
+   - Khó khăn: GitHub mặc định disable Actions trên repo fork.
+   - Giải pháp: Bật quyền chạy Actions trong tab Actions và cấu hình 5 Repository Secrets chuẩn xác (CLOUD_CREDENTIALS, CLOUD_BUCKET, VM_HOST, VM_USER, VM_SSH_KEY).
 
-3. Xử lý định dạng chuỗi xác thực trong Workflow CI/CD:
-   - Khó khăn: Runner Python 3.10 trên GitHub Actions gặp lỗi cú pháp khi xử lý chuỗi escape lồng nhau trong bước xác thực JSON secret.
-   - Giải pháp: Tách biến và đọc trực tiếp từ dictionary Python để truyền chuẩn xác các biến môi trường AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION vào $GITHUB_ENV.
+3. Xử lý chuỗi Credentials trong Runner Linux:
+   - Khó khăn: Trình thông dịch Python 3.10 trên GitHub Actions báo lỗi SyntaxError với escape backslash trong f-string.
+   - Giải pháp: Tách biến và trích xuất trực tiếp từ JSON object để ghi biến môi trường vào $GITHUB_ENV.
 
-4. Đồng bộ DVC trước khi kích hoạt CI/CD:
-   - Khó khăn: Nếu đẩy git commit trước khi đẩy dữ liệu DVC, GitHub Actions runner sẽ bị lỗi do không tìm thấy file dữ liệu trên S3.
-   - Giải pháp: Tuân thủ quy trình chuẩn: dvc add -> dvc push lên S3 trước -> git commit file .dvc -> git push kích hoạt pipeline.
+4. Đồng bộ dữ liệu DVC trước khi push Git:
+   - Khó khăn: Nguy cơ pipeline thất bại nếu dvc pull chạy trước khi dữ liệu kịp đưa lên S3.
+   - Giải pháp: Áp dụng nghiêm ngặt thứ tự: dvc add -> dvc push lên S3 -> git commit file .dvc -> git push.
 
 ================================================================================
-4. DANH MỤC HÌNH ẢNH MINH CHỨNG (KÈM THEO TRONG THƯ MỤC DOCS/SCREENSHOTS)
+4. DANH MỤC ẢNH MINH CHỨNG THEO ĐÚNG THỨ TỰ YÊU CẦU (THƯ MỤC DOCS/SCREENSHOTS)
 ================================================================================
-- docs/screenshots/step1_mlflow.png: Giao diện MLflow UI với 4 runs và biểu đồ so sánh metrics.
-- docs/screenshots/github_actions_step2.png: Pipeline Bước 2 hoàn thành 4 jobs xanh (Test, Train, Eval, Deploy).
-- docs/screenshots/s3_storage_objects.png: AWS S3 Console hiển thị thư mục dvc/ và models/latest/model.pkl.
-- docs/screenshots/curl_api_inference_step2.png: Terminal gọi curl /health và /predict tới EC2 VM ở Bước 2.
-- docs/screenshots/github_actions_step3.png: Pipeline Bước 3 kích hoạt bởi commit dữ liệu mới, 4 jobs xanh.
-- docs/screenshots/curl_api_inference_step3.png: Terminal gọi curl /predict tới EC2 VM kiểm tra mô hình Bước 3.
+1. docs/screenshots/01_mlflow_ui.png : MLflow UI hiển thị 4 thí nghiệm và biểu đồ so sánh metrics.
+2. docs/screenshots/02_github_actions_initial_run.png : GitHub Actions lần đầu (Bước 2) - 4 jobs xanh.
+3. docs/screenshots/03_github_actions_data_commit_run.png : GitHub Actions lần 2 (Bước 3) kích hoạt bởi commit dữ liệu mới - 4 jobs xanh.
+4. docs/screenshots/04_curl_inference_results.png : Kết quả curl /health và /predict trên EC2 VM.
+5. docs/screenshots/05_cloud_storage_console.png : AWS S3 Console hiển thị thư mục dvc/ và models/latest/model.pkl.
