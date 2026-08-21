@@ -71,17 +71,20 @@ jobs:
                   with open(os.environ["GITHUB_ENV"], "a") as f:
                       f.write("GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json\n")
               elif "aws_access_key_id" in data:
+                  key_id = data.get("aws_access_key_id")
+                  secret = data.get("aws_secret_access_key")
+                  region = data.get("aws_default_region", "ap-southeast-1")
                   with open(os.environ["GITHUB_ENV"], "a") as f:
-                      f.write(f"AWS_ACCESS_KEY_ID={data.get(\"aws_access_key_id\")}\n")
-                      f.write(f"AWS_SECRET_ACCESS_KEY={data.get(\"aws_secret_access_key\")}\n")
-                      if "aws_default_region" in data:
-                          f.write(f"AWS_DEFAULT_REGION={data.get(\"aws_default_region\")}\n")
+                      f.write(f"AWS_ACCESS_KEY_ID={key_id}\n")
+                      f.write(f"AWS_SECRET_ACCESS_KEY={secret}\n")
+                      f.write(f"AWS_DEFAULT_REGION={region}\n")
           except Exception:
               with open("/tmp/sa-key.json", "w") as f:
                   f.write(creds)
               with open(os.environ["GITHUB_ENV"], "a") as f:
                   f.write("GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-key.json\n")
           '
+
 
       - name: Pull data with DVC
         run: dvc pull data/train_phase1.csv.dvc data/eval.csv.dvc
